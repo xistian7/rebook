@@ -9,6 +9,9 @@
 /* @var $table string the name table */
 /* @var $fields array the fields */
 
+preg_match('/^add_(.+)_columns?_to_(.+)_table$/', $name, $matches);
+$columns = $matches[1];
+
 echo "<?php\n";
 if (!empty($namespace)) {
     echo "\nnamespace {$namespace};\n";
@@ -18,7 +21,7 @@ if (!empty($namespace)) {
 use yii\db\Migration;
 
 /**
- * Handles adding columns to table `<?= $table ?>`.
+ * Handles adding <?= $columns ?> to table `<?= $table ?>`.
 <?= $this->render('_foreignTables', [
      'foreignKeys' => $foreignKeys,
  ]) ?>

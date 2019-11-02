@@ -17,7 +17,6 @@ use yii\console\ExitCode;
 use yii\db\MigrationInterface;
 use yii\helpers\Console;
 use yii\helpers\FileHelper;
-use yii\helpers\Inflector;
 
 /**
  * BaseMigrateController is the base class for migrate controllers.
@@ -662,15 +661,17 @@ abstract class BaseMigrateController extends Controller
         if (strpos($name, '\\') !== false) {
             $namespace = substr($name, 0, strrpos($name, '\\'));
             $name = substr($name, strrpos($name, '\\') + 1);
-        } elseif ($this->migrationPath === null) {
-            $migrationNamespaces = $this->migrationNamespaces;
-            $namespace = array_shift($migrationNamespaces);
+        } else {
+            if ($this->migrationPath === null) {
+                $migrationNamespaces = $this->migrationNamespaces;
+                $namespace = array_shift($migrationNamespaces);
+            }
         }
 
         if ($namespace === null) {
             $class = 'm' . gmdate('ymd_His') . '_' . $name;
         } else {
-            $class = 'M' . gmdate('ymdHis') . Inflector::camelize($name);
+            $class = 'M' . gmdate('ymdHis') . ucfirst($name);
         }
 
         return [$namespace, $class];

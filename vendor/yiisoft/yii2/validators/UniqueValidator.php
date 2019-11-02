@@ -178,7 +178,7 @@ class UniqueValidator extends Validator
      */
     private function modelExists($targetClass, $conditions, $model)
     {
-        /** @var ActiveRecordInterface|\yii\base\BaseObject $targetClass $query */
+        /** @var ActiveRecordInterface $targetClass $query */
         $query = $this->prepareQuery($targetClass, $conditions);
 
         if (!$model instanceof ActiveRecordInterface || $model->getIsNewRecord() || $model->className() !== $targetClass::className()) {
@@ -194,15 +194,6 @@ class UniqueValidator extends Validator
                 
                 // any with relation can't be loaded because related fields are not selected
                 $query->with = null;
-    
-                if (is_array($query->joinWith)) {
-                    // any joinWiths need to have eagerLoading turned off to prevent related fields being loaded
-                    foreach ($query->joinWith as &$joinWith) {
-                        // \yii\db\ActiveQuery::joinWith adds eagerLoading at key 1
-                        $joinWith[1] = false;
-                    }
-                    unset($joinWith);
-                }
             }
             $models = $query->limit(2)->asArray()->all();
             $n = count($models);
@@ -320,12 +311,10 @@ class UniqueValidator extends Validator
         $prefixedConditions = [];
         foreach ($conditions as $columnName => $columnValue) {
             if (strpos($columnName, '(') === false) {
-                $columnName = preg_replace('/^' . preg_quote($alias) . '\.(.*)$/', '$1', $columnName);
-                if (strpos($columnName, '[[') === 0) {
-                    $prefixedColumn = "{$alias}.{$columnName}";
-                } else {
-                    $prefixedColumn = "{$alias}.[[{$columnName}]]";
-                }
+                $prefixedColumn = "{$alias}.[[" . preg_replace(
+                    '/^' . preg_quote($alias) . '\.(.*)$/',
+                    '$1',
+                    $columnName) . ']]';
             } else {
                 // there is an expression, can't prefix it reliably
                 $prefixedColumn = $columnName;

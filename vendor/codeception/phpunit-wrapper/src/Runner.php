@@ -3,18 +3,18 @@ namespace Codeception\PHPUnit;
 
 use Codeception\Configuration;
 use Codeception\Exception\ConfigurationException;
+use PHPUnit\Framework\TestSuite;
 
 class Runner extends \PHPUnit\TextUI\TestRunner
 {
     public static $persistentListeners = [];
 
     protected $defaultListeners = [
-        'xml'         => false,
-        'phpunit-xml' => false,
-        'html'        => false,
-        'tap'         => false,
-        'json'        => false,
-        'report'      => false
+        'xml'  => false,
+        'html' => false,
+        'tap'  => false,
+        'json' => false,
+        'report' => false
     ];
 
     protected $config = [];
@@ -46,8 +46,11 @@ class Runner extends \PHPUnit\TextUI\TestRunner
     {
         $this->handleConfiguration($arguments);
 
+        $filterAdded = false;
+
         $filterFactory = new \PHPUnit\Runner\Filter\Factory();
         if ($arguments['groups']) {
+            $filterAdded = true;
             $filterFactory->addFilter(
                 new \ReflectionClass('PHPUnit\Runner\Filter\IncludeGroupFilterIterator'),
                 $arguments['groups']
@@ -55,6 +58,7 @@ class Runner extends \PHPUnit\TextUI\TestRunner
         }
 
         if ($arguments['excludeGroups']) {
+            $filterAdded = true;
             $filterFactory->addFilter(
                 new \ReflectionClass('PHPUnit\Runner\Filter\ExcludeGroupFilterIterator'),
                 $arguments['excludeGroups']
@@ -62,13 +66,16 @@ class Runner extends \PHPUnit\TextUI\TestRunner
         }
 
         if ($arguments['filter']) {
+            $filterAdded = true;
             $filterFactory->addFilter(
                 new \ReflectionClass('Codeception\PHPUnit\FilterTest'),
                 $arguments['filter']
             );
         }
 
-        $suite->injectFilter($filterFactory);
+        if ($filterAdded) {
+            $suite->injectFilter($filterFactory);
+        }
     }
 
     public function doEnhancedRun(
@@ -94,10 +101,7 @@ class Runner extends \PHPUnit\TextUI\TestRunner
 
         if (class_exists('\Symfony\Bridge\PhpUnit\SymfonyTestsListener')) {
             $arguments['listeners'] = isset($arguments['listeners']) ? $arguments['listeners'] : [];
-
-            $listener = new \Symfony\Bridge\PhpUnit\SymfonyTestsListener();
-            $listener->globalListenerDisabled();
-            $arguments['listeners'][] = $listener;
+            $arguments['listeners'][] = new \Symfony\Bridge\PhpUnit\SymfonyTestsListener();
         }
 
         $arguments['listeners'][] = $this->printer;
@@ -147,13 +151,6 @@ class Runner extends \PHPUnit\TextUI\TestRunner
             self::$persistentListeners[] = $this->instantiateReporter(
                 'xml',
                 [$this->absolutePath($arguments['xml']), (bool)$arguments['log_incomplete_skipped']]
-            );
-        }
-        if ($arguments['phpunit-xml']) {
-            codecept_debug('Printing PHPUNIT report into ' . $arguments['phpunit-xml']);
-            self::$persistentListeners[] = $this->instantiateReporter(
-                'phpunit-xml',
-                [$this->absolutePath($arguments['phpunit-xml']), (bool)$arguments['log_incomplete_skipped']]
             );
         }
         if ($arguments['tap']) {

@@ -1,0 +1,165 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 20-dic-2018, 18:52:30
+    Author     : Cristian
+*/
+@media (min-width: 1025px) {
+    .m-dropdown.m-dropdown--align-center.m-dropdown--large .m-dropdown__wrapper {
+        margin-left: -350px !important;
+    }
+}
+@media (max-width: 1025px) {
+    .m-brand__logo-wrapper img{
+        width: 60px !important;
+    }
+    .kt-widget31 .kt-widget31__item .kt-widget31__content:last-child {
+        width: 100%;
+        padding: 0% 5%;
+        margin: 1rem 0;
+    }
+}
+
+.select2-container .select2-selection--single {
+    height: 35px;
+}
+.input-group-addon {
+    padding: 10px 25px 10px 10px;
+}
+.dataTables_length{
+    float: left;
+}
+#m_table_3_wrapper{
+    margin-top: -20px;
+}
+#m_table_3_wrapper .dataTables_scroll{
+    margin-top: -10px !important;
+}
+.bottonsToolsResume{
+    margin-right: 0px;
+}
+.import-dolars-etoro{
+    position: absolute;
+    text-align: right;
+    margin-top: -33px;
+    color: #34bfa3 !important;
+    width: 100%;
+    padding-right: 25px;
+}
+.beginning-dolars-etoro{
+    position: absolute;
+    text-align: left;
+    color: #9699a2 !important;
+    width: 100%;
+    padding-left: 23px;
+    margin-top: 18px;
+}
+.botoOpcionsBank{
+    background: none !important;
+    border: none !important;
+    width:100%;
+    text-align: left;
+}
+.botoOpcionsBank:hover{
+    background: lightgray !important;
+}
+.botoOpcionsBank i{
+    margin-right:10px;
+    font-size:25px;
+}
+li.m-nav__item{
+    display: block;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    border-top: 1px solid grey;
+    border-bottom: 1px solid grey;
+}
+
+.botoOpcionsBank span{
+    position: absolute;
+    font-size: 15px;
+    margin-top: 2px;
+}
+.addPartido{
+    float:right;
+    margin-top: 5px;
+    margin-right:5px;
+}
+.select2-container{
+    z-index:100000;
+}
+.datepicker{
+    z-index:100001 !important;
+}
+.labelMoviments{
+    position: absolute;
+    top: 30%;
+    left: 32%;
+    font-weight: 600;
+}
+.labelNumMoviments{
+    top: 56% !important;
+    color:black !important;
+    font-size: 20px !important;
+}
+.taulesInformeApostesMarc{
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+.taulesInformeApostesMarc td {
+    border: 1px solid black !important;
+    padding: 2% !important;
+}
+
+.botoMenuSuperior i{
+    font-size: 16px;
+    margin-right: 10px !important;
+    margin-top: -2px !important;
+}
+.tabResumenSistemas{
+    margin-left: 5%;
+    margin-right: 5%;
+    border: 1px solid black !important;
+    background: ghostwhite;
+}
+.panelResumGeneralMes{
+    display:none !important;
+}
+.panelResumGeneralMes.active{
+    display:block !important;
+}
+
+.panelResumNBAApuestasPreMes{
+    display:none !important;
+}
+.panelResumNBAApuestasPreMes.active{
+    display:block !important;
+}
+
+.panelResumCejotaPreMes{
+    display:none !important;
+}
+.panelResumCejotaPreMes.active{
+    display:block !important;
+}
+
+.panelResumNBAApuestasLiveMes{
+    display:none !important;
+}
+.panelResumNBAApuestasLiveMes.active{
+    display:block !important;
+}
+.botoDesplegableInforme, .botoDesplegableInformeNBAApuestasPre, .botoDesplegableInformeCejotaPre, .botoDesplegableInformeNBAApuestasLive{
+    background: transparent;
+    text-align: right;
+    border: 1px solid;
+    width: 180px;
+    margin-right: 40px;
+    float: right;
+    margin-top: 10px;
+}
+

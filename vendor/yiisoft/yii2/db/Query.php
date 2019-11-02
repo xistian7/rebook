@@ -605,7 +605,15 @@ PATTERN;
      */
     public function select($columns, $option = null)
     {
-        $this->select = $this->normalizeSelect($columns);
+        if ($columns instanceof ExpressionInterface) {
+            $columns = [$columns];
+        } elseif (!is_array($columns)) {
+            $columns = preg_split('/\s*,\s*/', trim($columns), -1, PREG_SPLIT_NO_EMPTY);
+        }
+        // this sequantial assignment is needed in order to make sure select is being reset
+        // before using getUniqueColumns() that checks it
+        $this->select = [];
+        $this->select = $this->getUniqueColumns($columns);
         $this->selectOption = $option;
         return $this;
     }
@@ -627,58 +635,19 @@ PATTERN;
      */
     public function addSelect($columns)
     {
-        if ($this->select === null) {
-            return $this->select($columns);
-        }
-        if (!is_array($this->select)) {
-            $this->select = $this->normalizeSelect($this->select);
-        }
-        $this->select = array_merge($this->select, $this->normalizeSelect($columns));
-
-        return $this;
-    }
-
-    /**
-     * Normalizes the SELECT columns passed to [[select()]] or [[addSelect()]].
-     *
-     * @param string|array|ExpressionInterface $columns
-     * @return array
-     * @since 2.0.21
-     */
-    protected function normalizeSelect($columns)
-    {
         if ($columns instanceof ExpressionInterface) {
             $columns = [$columns];
         } elseif (!is_array($columns)) {
             $columns = preg_split('/\s*,\s*/', trim($columns), -1, PREG_SPLIT_NO_EMPTY);
         }
-        $select = [];
-        foreach ($columns as $columnAlias => $columnDefinition) {
-            if (is_string($columnAlias)) {
-                // Already in the normalized format, good for them
-                $select[$columnAlias] = $columnDefinition;
-                continue;
-            }
-            if (is_string($columnDefinition)) {
-                if (
-                    preg_match('/^(.*?)(?i:\s+as\s+|\s+)([\w\-_\.]+)$/', $columnDefinition, $matches) &&
-                    !preg_match('/^\d+$/', $matches[2]) &&
-                    strpos($matches[2], '.') === false
-                ) {
-                    // Using "columnName as alias" or "columnName alias" syntax
-                    $select[$matches[2]] = $matches[1];
-                    continue;
-                }
-                if (strpos($columnDefinition, '(') === false) {
-                    // Normal column name, just alias it to itself to ensure it's not selected twice
-                    $select[$columnDefinition] = $columnDefinition;
-                    continue;
-                }
-            }
-            // Either a string calling a function, DB expression, or sub-query
-            $select[] = $columnDefinition;
+        $columns = $this->getUniqueColumns($columns);
+        if ($this->select === null) {
+            $this->select = $columns;
+        } else {
+            $this->select = array_merge($this->select, $columns);
         }
-        return $select;
+
+        return $this;
     }
 
     /**
@@ -688,7 +657,6 @@ PATTERN;
      * - if column definition without alias already present in SELECT part without alias too
      * @param array $columns the columns to be merged to the select.
      * @since 2.0.14
-     * @deprecated in 2.0.21
      */
     protected function getUniqueColumns($columns)
     {
@@ -719,7 +687,6 @@ PATTERN;
     /**
      * @return array List of columns without aliases from SELECT statement.
      * @since 2.0.14
-     * @deprecated in 2.0.21
      */
     protected function getUnaliasedColumnsFromSelect()
     {
@@ -781,7 +748,7 @@ PATTERN;
      */
     public function from($tables)
     {
-        if ($tables instanceof ExpressionInterface) {
+        if ($tables instanceof Expression) {
             $tables = [$tables];
         }
         if (is_string($tables)) {
@@ -1034,7 +1001,7 @@ PATTERN;
 
     /**
      * Adds additional group-by columns to the existing ones.
-     * @param string|array|ExpressionInterface $columns additional columns to be grouped by.
+     * @param string|array $columns additional columns to be grouped by.
      * Columns can be specified in either a string (e.g. "id, name") or an array (e.g. ['id', 'name']).
      * The method will automatically quote the column names unless a column contains some parenthesis
      * (which means the column contains a DB expression).

@@ -6,7 +6,7 @@ use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
-
+use \yii\db\Query;
 /**
  * User model
  *
@@ -14,7 +14,6 @@ use yii\web\IdentityInterface;
  * @property string $username
  * @property string $password_hash
  * @property string $password_reset_token
- * @property string $verification_token
  * @property string $email
  * @property string $auth_key
  * @property integer $status
@@ -25,10 +24,16 @@ use yii\web\IdentityInterface;
 class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
-    const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
-
-
+    
+    
+    const ROLE_ADMIN = 100;
+    const ROLE_USERCLIENT = 200;
+    const ROLE_USERCURSOS = 300;
+    
+    public $password = '*********';
+    
+    public $newpassword;
     /**
      * {@inheritdoc}
      */
@@ -53,8 +58,13 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_INACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            [['name','surname','img','pais_iso3','telefono'], 'string', 'max' => 255],
+            ['password', 'required'],
+            ['password', 'string', 'min' => 6],
+            [['role'], 'integer'],
+            ['status', 'default', 'value' => self::STATUS_ACTIVE],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            [['pais_iso3'], 'exist', 'skipOnError' => true, 'targetClass' => Pais::className(), 'targetAttribute' => ['pais_iso3' => 'iso3']],
         ];
     }
 
@@ -100,19 +110,6 @@ class User extends ActiveRecord implements IdentityInterface
         return static::findOne([
             'password_reset_token' => $token,
             'status' => self::STATUS_ACTIVE,
-        ]);
-    }
-
-    /**
-     * Finds user by verification email token
-     *
-     * @param string $token verify email token
-     * @return static|null
-     */
-    public static function findByVerificationToken($token) {
-        return static::findOne([
-            'verification_token' => $token,
-            'status' => self::STATUS_INACTIVE
         ]);
     }
 
@@ -194,11 +191,6 @@ class User extends ActiveRecord implements IdentityInterface
         $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
     }
 
-    public function generateEmailVerificationToken()
-    {
-        $this->verification_token = Yii::$app->security->generateRandomString() . '_' . time();
-    }
-
     /**
      * Removes password reset token
      */
@@ -206,4 +198,57 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
+    
+    //funcions especials
+    
+    public function getCompletName(){
+        return $this->name.' '.$this->surname;
+    }
+    
+    public function getImgPerfil(){
+        return '/img/users/'.$this->img;
+    }
+    
+    public function recuperarPass(){
+        // $clauGenerada = $this->generaPass();
+        //
+        // //var_dump($clauGenerada); die();
+        //
+        // $this->setPassword($clauGenerada);
+        //
+        // $this->save(false);
+        //
+        // //var_dump($clauGenerada); die();
+        // $email = new Email();
+        // $email->enviarEmail('Recuperar clau', $this);
+        // return true;
+        $clauGenerada = $this->generaPass();
+        //var_dump($clauGenerada); die();
+        $this->setPassword($clauGenerada);
+        $this->save(false);
+      /*  //var_dump($clauGenerada); die();
+        $email = new Email();
+        $email->sendEmailRecuperarClau($clauGenerada, $this);*/
+        return $clauGenerada;
+    }
+    
+     public function generaPass(){
+        //Se define una cadena de caractares. Te recomiendo que uses esta.
+        $cadena = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+        //Obtenemos la longitud de la cadena de caracteres
+        $longitudCadena=strlen($cadena);
+        //Se define la variable que va a contener la contraseña
+        $pass = "";
+        //Se define la longitud de la contraseña, en mi caso 10, pero puedes poner la longitud que quieras
+        $longitudPass=10;
+        //Creamos la contraseña
+        for($i=1 ; $i<=$longitudPass ; $i++){
+            //Definimos numero aleatorio entre 0 y la longitud de la cadena de caracteres-1
+            $pos=rand(0,$longitudCadena-1);
+            //Vamos formando la contraseña en cada iteraccion del bucle, añadiendo a la cadena $pass la letra correspondiente a la posicion $pos en la cadena de caracteres definida.
+            $pass .= substr($cadena,$pos,1);
+        }
+        return $pass;
+    }
 }
+

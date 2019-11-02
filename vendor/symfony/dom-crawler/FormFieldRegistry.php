@@ -20,7 +20,7 @@ use Symfony\Component\DomCrawler\Field\FormField;
  */
 class FormFieldRegistry
 {
-    private $fields = [];
+    private $fields = array();
 
     private $base;
 
@@ -34,7 +34,7 @@ class FormFieldRegistry
         $target = &$this->fields;
         while ($segments) {
             if (!\is_array($target)) {
-                $target = [];
+                $target = array();
             }
             $path = array_shift($segments);
             if ('' === $path) {
@@ -57,7 +57,7 @@ class FormFieldRegistry
         $target = &$this->fields;
         while (\count($segments) > 1) {
             $path = array_shift($segments);
-            if (!\is_array($target) || !\array_key_exists($path, $target)) {
+            if (!array_key_exists($path, $target)) {
                 return;
             }
             $target = &$target[$path];
@@ -80,7 +80,7 @@ class FormFieldRegistry
         $target = &$this->fields;
         while ($segments) {
             $path = array_shift($segments);
-            if (!\is_array($target) || !\array_key_exists($path, $target)) {
+            if (!array_key_exists($path, $target)) {
                 throw new \InvalidArgumentException(sprintf('Unreachable field "%s"', $path));
             }
             $target = &$target[$path];
@@ -121,10 +121,8 @@ class FormFieldRegistry
         if ((!\is_array($value) && $target instanceof Field\FormField) || $target instanceof Field\ChoiceFormField) {
             $target->setValue($value);
         } elseif (\is_array($value)) {
-            $registry = new static();
-            $registry->base = $name;
-            $registry->fields = $value;
-            foreach ($registry->all() as $k => $v) {
+            $fields = self::create($name, $value);
+            foreach ($fields->all() as $k => $v) {
                 $this->set($k, $v);
             }
         } else {
@@ -135,11 +133,31 @@ class FormFieldRegistry
     /**
      * Returns the list of field with their value.
      *
-     * @return FormField[] The list of fields as [string] Fully qualified name => (mixed) value)
+     * @return FormField[] The list of fields as array((string) Fully qualified name => (mixed) value)
      */
     public function all()
     {
         return $this->walk($this->fields, $this->base);
+    }
+
+    /**
+     * Creates an instance of the class.
+     *
+     * This function is made private because it allows overriding the $base and
+     * the $values properties without any type checking.
+     *
+     * @param string $base   The fully qualified name of the base field
+     * @param array  $values The values of the fields
+     *
+     * @return static
+     */
+    private static function create($base, array $values)
+    {
+        $registry = new static();
+        $registry->base = $base;
+        $registry->fields = $values;
+
+        return $registry;
     }
 
     /**
@@ -149,9 +167,9 @@ class FormFieldRegistry
      * @param string $base   The name of the base field
      * @param array  $output The initial values
      *
-     * @return array The list of fields as [string] Fully qualified name => (mixed) value)
+     * @return array The list of fields as array((string) Fully qualified name => (mixed) value)
      */
-    private function walk(array $array, $base = '', array &$output = [])
+    private function walk(array $array, $base = '', array &$output = array())
     {
         foreach ($array as $k => $v) {
             $path = empty($base) ? $k : sprintf('%s[%s]', $base, $k);
@@ -168,7 +186,9 @@ class FormFieldRegistry
     /**
      * Splits a field name into segments as a web browser would do.
      *
-     *     getSegments('base[foo][3][]') = ['base', 'foo, '3', ''];
+     * <code>
+     *     getSegments('base[foo][3][]') = array('base', 'foo, '3', '');
+     * </code>
      *
      * @param string $name The name of the field
      *
@@ -177,7 +197,7 @@ class FormFieldRegistry
     private function getSegments($name)
     {
         if (preg_match('/^(?P<base>[^[]+)(?P<extra>(\[.*)|$)/', $name, $m)) {
-            $segments = [$m['base']];
+            $segments = array($m['base']);
             while (!empty($m['extra'])) {
                 $extra = $m['extra'];
                 if (preg_match('/^\[(?P<segment>.*?)\](?P<extra>.*)$/', $extra, $m)) {
@@ -190,6 +210,6 @@ class FormFieldRegistry
             return $segments;
         }
 
-        return [$name];
+        return array($name);
     }
 }

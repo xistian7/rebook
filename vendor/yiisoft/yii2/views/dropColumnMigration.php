@@ -8,6 +8,8 @@
 /* @var $namespace string the new migration class namespace */
 /* @var $table string the name table */
 /* @var $fields array the fields */
+preg_match('/^drop_(.+)_columns?_from_(.+)_table$/', $name, $matches);
+$columns = $matches[1];
 
 echo "<?php\n";
 if (!empty($namespace)) {
@@ -18,7 +20,7 @@ if (!empty($namespace)) {
 use yii\db\Migration;
 
 /**
- * Handles dropping columns from table `<?= $table ?>`.
+ * Handles dropping <?= $columns ?> from table `<?= $table ?>`.
 <?= $this->render('_foreignTables', [
     'foreignKeys' => $foreignKeys,
 ]) ?>

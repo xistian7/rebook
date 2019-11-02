@@ -6,24 +6,22 @@ use Codeception\Util\Locator;
 
 class WebDriverNot extends WebDriver
 {
-    protected function matches($nodes)
+    protected function matches($nodes) : bool
     {
         return !parent::matches($nodes);
     }
 
-    protected function fail($nodes, $selector, ComparisonFailure $comparisonFailure = null)
+    protected function fail($nodes, $selector, ComparisonFailure $comparisonFailure = null) : void
     {
-        if (!is_string($selector) || strpos($selector, "'") === false) {
-            $selector = Locator::humanReadableString($selector);
-        }
+        $selectorString = Locator::humanReadableString($selector);
         if (!$this->string) {
             throw new \PHPUnit\Framework\ExpectationFailedException(
-                "Element $selector was found",
+                "Element $selectorString was found",
                 $comparisonFailure
             );
         }
 
-        $output = "There was $selector element";
+        $output = "There was $selectorString element";
         $output .= $this->uriMessage("on page");
         $output .= $this->nodesList($nodes, $this->string);
         $output .= "\ncontaining '{$this->string}'";
@@ -34,7 +32,7 @@ class WebDriverNot extends WebDriver
         );
     }
 
-    public function toString()
+    public function toString() : string
     {
         if ($this->string) {
             return 'that contains text "' . $this->string . '"';

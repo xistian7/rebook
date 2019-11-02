@@ -13,11 +13,20 @@ class LoginForm extends Model
     public $password;
     public $rememberMe = true;
 
-    private $_user;
+    private $_user = false;
+    private $_role = 0;
 
+
+    public function __construct($role = 0, $config = [])
+    {
+
+        $this->_role = $role;
+
+        parent::__construct($config);
+    }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function rules()
     {
@@ -43,7 +52,7 @@ class LoginForm extends Model
         if (!$this->hasErrors()) {
             $user = $this->getUser();
             if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+                $this->addError($attribute, Yii::t('app','Incorrect username or password.'));
             }
         }
     }
@@ -51,15 +60,37 @@ class LoginForm extends Model
     /**
      * Logs in a user using the provided username and password.
      *
-     * @return bool whether the user is logged in successfully
+     * @return boolean whether the user is logged in successfully
      */
     public function login()
     {
         if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
+            $user = $this->getUser();
+            Yii::$app->session['_lang'] = $user->language_id;
+            Yii::$app->language = $user->language_id;
+            return Yii::$app->user->login($user, $this->rememberMe ? 3600 * 24 * 30 : 0);
+        } else {
+            return false;
         }
-        
-        return false;
+    }
+    
+     public function loginSinPassword($user)
+    {
+            Yii::$app->session['_lang'] = $user->language_id;
+            Yii::$app->language = $user->language_id;
+            return Yii::$app->user->login($user, $this->rememberMe ? 3600 * 24 * 30 : 0);
+    }
+    
+    public function loginAPP()
+    {
+        if ($this->validate()) {
+            $user = $this->getUser();
+            Yii::$app->session['_lang'] = $user->language_id;
+            Yii::$app->language = $user->language_id;
+            return $user;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -67,12 +98,22 @@ class LoginForm extends Model
      *
      * @return User|null
      */
-    protected function getUser()
+    public function getUser()
     {
-        if ($this->_user === null) {
-            $this->_user = User::findByUsername($this->username);
+        if ($this->_user === false) {
+            $this->_user = User::findByUsername($this->username,$this->_role);
         }
 
         return $this->_user;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'rememberMe' => Yii::t('app', 'Remember me'),
+        ];
     }
 }
