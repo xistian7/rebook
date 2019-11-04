@@ -62,7 +62,7 @@ AppAsset::register($this);
                                 <div class="m-stack m-stack--ver m-stack--general">
                                         <div class="m-stack__item m-stack__item--middle m-brand__logo">
                                                 <a href="/" class="m-brand__logo-wrapper">
-                                                    <img alt="" src="<?= Url::base()?>/img/logo_rebook.png" style="max-width:100%;"/>
+                                                    <img alt="" src="<?= Url::base()?>/img/logo_rebook_w.png" style="max-width:100%;"/>
                                                 </a>
                                         </div>
                                         <div class="m-stack__item m-stack__item--middle m-brand__tools">
