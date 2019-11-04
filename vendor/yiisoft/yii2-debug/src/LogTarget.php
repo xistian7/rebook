@@ -11,7 +11,6 @@ use Yii;
 use yii\base\InvalidConfigException;
 use yii\helpers\FileHelper;
 use yii\log\Target;
-use Opis\Closure;
 
 /**
  * The debug LogTarget is used to store logs for later use in the debugger tool
@@ -45,7 +44,6 @@ class LogTarget extends Target
     /**
      * Exports log messages to a specific destination.
      * Child classes must implement this method.
-     * @throws \yii\base\Exception
      */
     public function export()
     {
@@ -58,12 +56,7 @@ class LogTarget extends Target
         $exceptions = [];
         foreach ($this->module->panels as $id => $panel) {
             try {
-                $panelData = $panel->save();
-                if ($id === 'profiling') {
-                    $summary['peakMemory'] = $panelData['memory'];
-                    $summary['processingTime'] = $panelData['time'];
-                }
-                $data[$id] = Closure\serialize($panelData);
+                $data[$id] = serialize($panel->save());
             } catch (\Exception $exception) {
                 $exceptions[$id] = new FlattenException($exception);
             }
@@ -71,7 +64,7 @@ class LogTarget extends Target
         $data['summary'] = $summary;
         $data['exceptions'] = $exceptions;
 
-        file_put_contents($dataFile, Closure\serialize($data));
+        file_put_contents($dataFile, serialize($data));
         if ($this->module->fileMode !== null) {
             @chmod($dataFile, $this->module->fileMode);
         }
@@ -89,8 +82,8 @@ class LogTarget extends Target
      */
     private function updateIndexFile($indexFile, $summary)
     {
-
-        if (!@touch($indexFile) || ($fp = @fopen($indexFile, 'r+')) === false) {
+        touch($indexFile);
+        if (($fp = @fopen($indexFile, 'r+')) === false) {
             throw new InvalidConfigException("Unable to open debug data index file: $indexFile");
         }
         @flock($fp, LOCK_EX);
@@ -102,7 +95,7 @@ class LogTarget extends Target
             // error while reading index data, ignore and create new
             $manifest = [];
         } else {
-            $manifest = Closure\unserialize($manifest);
+            $manifest = unserialize($manifest);
         }
 
         $manifest[$this->tag] = $summary;
@@ -110,7 +103,7 @@ class LogTarget extends Target
 
         ftruncate($fp, 0);
         rewind($fp);
-        fwrite($fp, Closure\serialize($manifest));
+        fwrite($fp, serialize($manifest));
 
         @flock($fp, LOCK_UN);
         @fclose($fp);
@@ -127,7 +120,6 @@ class LogTarget extends Target
      * @param array $messages log messages to be processed. See [[\yii\log\Logger::messages]] for the structure
      * of each message.
      * @param bool $final whether this method is called at the end of the current application
-     * @throws \yii\base\Exception
      */
     public function collect($messages, $final)
     {
@@ -168,7 +160,7 @@ class LogTarget extends Target
     protected function collectSummary()
     {
         if (Yii::$app === null) {
-            return [];
+            return '';
         }
 
         $request = Yii::$app->getRequest();

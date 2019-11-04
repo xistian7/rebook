@@ -12,7 +12,7 @@ use yii\filters\VerbFilter;
 /**
  * BookController implements the CRUD actions for Book model.
  */
-class BookController extends Controller
+class BookController extends MainController
 {
     /**
      * {@inheritdoc}
